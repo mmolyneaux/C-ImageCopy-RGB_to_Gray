@@ -27,14 +27,18 @@ typedef struct {
 } bitmap;
 
 // helper function, verify a filename ends with extension.
+// returns true if str ends with the correct ext,
+// returns false otherwise.
 bool endsWith(char *str, const char *ext) {
+    
+    // Check for NULL;
     if (!str || !ext) {
         return false;
     }
     size_t len_str = strlen(str);
     size_t len_ext = strlen(ext);
 
-    // Good check to make sure the strings weren't given reversed.
+    // return false if the str is shorter than the ext it's checking for.
     if (len_ext > len_str) {
         return false;
     }
@@ -123,11 +127,15 @@ void writeImage(char *filename, bitmap *bitmapIn) {
         fwrite(bitmapIn->colorTable, sizeof(char), CT_SIZE, streamOut);
     }
     size_t imageSize = bitmapIn->width * bitmapIn->height;
-    //fwrite(bitmapIn->imageBuffer, sizeof(char), imageSize, streamOut);
+    
+    uint32_t temp = 0;
     for (int i = 0; i < imageSize; i++){
-        putc(bitmapIn->imageBuffer[i][0], streamOut); // red
-        putc(bitmapIn->imageBuffer[i][1], streamOut); // green
-        putc(bitmapIn->imageBuffer[i][2], streamOut); // blue
+        // the equation for mixing RGB to gray.
+        temp = (bitmapIn->imageBuffer[i][0]*0.3) + (bitmapIn->imageBuffer[i][1]*0.59) + (bitmapIn->imageBuffer[i][2]*0.11);
+        // Write equally for each channel.
+        putc(temp, streamOut); // red
+        putc(temp, streamOut); // green
+        putc(temp, streamOut); // blue
     }
     fclose(streamOut);
 }
@@ -136,7 +144,7 @@ int main(int argc, char *argv[]) {
 
     char *filename1 = NULL;
     char *filename2 = NULL;
-    bool freeFilename2 = false; // this may or may not be dynamically allocated.
+    bool freeFilename2 = false; // filename needs to be freed if this is true.
     const char *suffix = "_copy";
     const char *extension = ".bmp";
 
